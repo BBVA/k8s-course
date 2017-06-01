@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  name: php-apache
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: php-apache
+    spec:
+      containers:
+      - name: php-apache
+        image: gcr.io/google_containers/hpa-example
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "200m"
+          limits:
+            cpu: "250m"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: php-apache
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  clusterIP: None
+  selector:
+    name: php-apache
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: php-apache-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: ReplicaSet
+    name: php-apache
+  minReplicas: 1
+  maxReplicas: 3
+  cpuUtilization:
+    targetPercentage: 20
