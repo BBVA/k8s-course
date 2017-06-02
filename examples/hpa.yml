@@ -1,5 +1,5 @@
-apiVersion: extensions/v1beta1
-kind: ReplicaSet
+apiVersion: apps/v1beta1
+kind: Deployment
 metadata:
   name: php-apache
 spec:
@@ -33,16 +33,19 @@ spec:
   selector:
     name: php-apache
 ---
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2alpha1
 kind: HorizontalPodAutoscaler
 metadata:
   name: php-apache-hpa
 spec:
   scaleTargetRef:
-    apiVersion: extensions/v1beta1
-    kind: ReplicaSet
+    apiVersion: apps/v1beta1
+    kind: Deployment
     name: php-apache
   minReplicas: 1
   maxReplicas: 3
-  cpuUtilization:
-    targetPercentage: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 10
